@@ -3,20 +3,20 @@ title BSOD trigger.exe
 color A
 cls
 pause
-title BSOD trigger.exe > Do Do you want to continue?
+title BSOD trigger.exe = Do you want to continue?
 cls
 pause
-title BSOD trigger.exe > do Are you sure?
+title BSOD trigger.exe = Are you sure?
 cls
 pause
-title BSOD trigger.exe > do are you really sure?
+title BSOD trigger.exe = are you really sure?
 cls
 pause
-title BSOD trigger.exe > do are you really really sure?
+title BSOD trigger.exe = are you really really sure?
 cls
 pause
 cls
-title BSOD trigger.exe > do Don't say I didn't warn you
+title BSOD trigger.exe = Don't say I didn't warn you
 cls
 pause
 powershell Start-Process bsodgo.bat -Verb runAs
