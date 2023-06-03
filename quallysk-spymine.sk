@@ -1,0 +1,69 @@
+#--------------------------------------------------------------------------------------#
+# SPY MINE
+# Addons needed: -
+# Author: Qually
+# Description: This script detects when a player mines multiple spawners located far away from each other and flags them for using Xray or Baritone cheats, which can alert server staff or other players to investigate their behavior.
+# Support: https://discord.gg/5zUSRVMSPc
+#
+# Default Permission nodes:
+# -spymine.alerts.view
+# -spymine.offenseleaderboard.view
+#--------------------------------------------------------------------------------------#
+
+options:
+	enabled: true
+	prefix: &b[SpyMine] &8>>&r
+
+#--------------------------------------------------------------------------------------#
+
+on load:
+	send "&6[Quallysk] > Spy Mine loaded!" to console
+
+on break:
+	if "{@enabled}" does not contain "true":
+		stop
+	if event-block is a spawner:
+		if metadata value "lastMinedSpawnerLocation" of player is set:
+			set {_last.x} to x coordinate of metadata value "lastMinedSpawnerLocation" of player
+			set {_last.z} to z coordinate of metadata value "lastMinedSpawnerLocation" of player			
+		set metadata value "lastMinedSpawnerLocation" of player to location of event-block
+		set {_current.x} to x coordinate of metadata value "lastMinedSpawnerLocation" of player
+		set {_current.z} to z coordinate of metadata value "lastMinedSpawnerLocation" of player
+		if {_last.x} and {_last.z} are set:
+			set {_difference.x} to abs({_last.x} - {_current.x})
+			set {_difference.z} to abs({_last.z} - {_current.z})
+			if {_difference.x} or {_difference.z} is greater or equal to 10:
+				if metadata value "pointsSpawners" of player is not set:
+					set {_current.points} to 0
+				else:
+					set {_current.points} to metadata value "pointsSpawners" of player
+				set metadata value "pointsSpawners" of player to ({_current.points} + 1)
+			else:
+				delete metadata value "pointsSpawners" of player
+			if metadata value "pointsSpawners" of player is greater than or equal to 3:
+				add 1 to {spawner.flags::%uuid of player%}
+				send "{@prefix}&c %player% &bhas been flagged for &cXray/Baritone of spawners! &b[Offense ##%{spawner.flags::%uuid of player%}%]" to all players where [input has permission "spymine.alerts.view"]
+				delete metadata value "pointsSpawners" of player
+
+command /spymineleaderboard:
+	permission: spymine.offenseleaderboard.view
+	aliases: spymineoffenses, topspawnerflags
+	trigger:
+		send "&0" to player
+		send "&b&nSpy Mine &7&n>>&c&n Top Spawner Flags" to player
+		set {_sorted::*} to sort_spymine((indices of {spawner.flags::*}), {spawner.flags::*})
+		loop 10 times:
+			set {_player} to {_sorted::%loop-value%} parsed as offline player
+			set {_uuid} to {_sorted::%loop-value%} parsed as offline player's uuid
+			set {_value} to {spawner.flags::%{_uuid}%}
+			if {_player} is not set:
+				set {_player} to "---"
+			if {_value} is not set:
+				set {_value} to "---"
+			send "&c%loop-value%&b) &c%{_player}% &b>> &c%{_value}% &bFlags" to player
+		send "&0" to player
+		
+function sort_spymine(indices: strings, values: numbers, descending: boolean = true) :: strings:
+	loop {_indices::*}:
+		set {_sort::%{_values::%loop-index%}%.%loop-index%} to loop-value
+	return (reversed {_sort::*}) if {_descending} is true, else {_sort::*}	
